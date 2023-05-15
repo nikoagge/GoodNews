@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import RxSwift
+import RxCocoa
 
 final class NewsListTableViewController: UITableViewController {
     override func viewDidLoad() {
@@ -15,9 +17,27 @@ final class NewsListTableViewController: UITableViewController {
     }
 }
 
-// MARK: - UI
-extension NewsListTableViewController {
+private extension NewsListTableViewController {
     func setupUI() {
         navigationController?.navigationBar.prefersLargeTitles = true
+    }
+    
+    func fetchNews() {
+        let url = URL(string: "https://newsapi.org/v2/everything?q=tesla&from=2023-04-15&sortBy=publishedAt&apiKey=5ef533b371f24f2eb349f3f8d05f7c6a")
+        guard let url = url else { return }
+        
+        Observable.just(url)
+            .flatMap { url -> Observable<Data> in
+                let request = URLRequest(url: url)
+                return return URLSession.shared.rx.data(request: request)
+            }.map { data -> [Article]? in
+                return try? JSONDecoder().decode(ArticleList.self, from: data).articles
+            }.subscribe(onNext: { [weak self] articles in
+                if let articles = articles {
+                    DispatchQueue.main.async {
+                        self?.tableView.reloadData()
+                    }
+                }
+            })
     }
 }

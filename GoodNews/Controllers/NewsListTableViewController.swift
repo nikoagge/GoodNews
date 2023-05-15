@@ -23,7 +23,7 @@ private extension NewsListTableViewController {
     }
     
     func fetchNews() {
-        let url = URL(string: "https://newsapi.org/v2/everything?q=tesla&from=2023-04-15&sortBy=publishedAt&apiKey=5ef533b371f24f2eb349f3f8d05f7c6a")
+        let url = URL(string: "https://newsapi.org/v2/everything?q=tesla&from=2023-04-15&sortBy=publishedAt&apiKey=")
         guard let url = url else { return }
         
         Observable.just(url)

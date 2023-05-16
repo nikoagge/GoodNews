@@ -26,20 +26,13 @@ private extension NewsListTableViewController {
     }
     
     func fetchNews() {
-        let url = URL(string: "https://newsapi.org/v2/everything?q=tesla&from=2023-04-15&sortBy=publishedAt&apiKey=")
-        guard let url = url else { return }
-        
-        Observable.just(url)
-            .flatMap { url -> Observable<Data> in
-                let request = URLRequest(url: url)
-                return URLSession.shared.rx.data(request: request)
-            }.map { data -> [Article]? in
-                return try? JSONDecoder().decode(ArticlesList.self, from: data).articles
-            }.subscribe(onNext: { [weak self] articles in
-                if let articles = articles {
+        URLRequest.load(resource: ArticlesList.all)
+            .subscribe(onNext: { [weak self] result in
+                guard let self = self else { return }
+                if let result = result {
+                    self.articles = result.articles
                     DispatchQueue.main.async {
-                        self?.articles = articles
-                        self?.tableView.reloadData()
+                        self.tableView.reloadData()
                     }
                 }
             }).disposed(by: disposeBag)

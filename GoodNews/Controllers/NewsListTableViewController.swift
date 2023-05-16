@@ -11,7 +11,7 @@ import RxCocoa
 
 final class NewsListTableViewController: UITableViewController {
     private let disposeBag = DisposeBag()
-    private var articles = [Article]()
+    private var articlesListViewModel: ArticlesListViewModel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -26,11 +26,11 @@ private extension NewsListTableViewController {
     }
     
     func fetchNews() {
-        URLRequest.load(resource: ArticlesList.all)
-            .subscribe(onNext: { [weak self] result in
+        URLRequest.load(resource: ArticlesResponse.all)
+            .subscribe(onNext: { [weak self] articlesResponse in
                 guard let self = self else { return }
-                if let result = result {
-                    self.articles = result.articles
+                if let articles = articlesResponse?.articles {
+                    self.articlesListViewModel = ArticlesListViewModel(articles)
                     DispatchQueue.main.async {
                         self.tableView.reloadData()
                     }
@@ -42,7 +42,7 @@ private extension NewsListTableViewController {
 // MARK: - TableView
 extension NewsListTableViewController {
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return articles.count
+        return articlesListViewModel == nil ? 0 : articlesListViewModel.articleViewModels.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -50,8 +50,13 @@ extension NewsListTableViewController {
             fatalError("ArticleTableViewCell does not exist")
         }
         
-        articleTableViewCell.titleLabel.text = articles[indexPath.row].title
-        articleTableViewCell.descriptionLabel.text = articles[indexPath.row].description
+        let articleViewModel = articlesListViewModel.articleAt(indexPath.row)
+        articleViewModel.title.asDriver(onErrorJustReturn: "")
+            .drive(articleTableViewCell.titleLabel.rx.text)
+            .disposed(by: disposeBag)
+        articleViewModel.description.asDriver(onErrorJustReturn: "")
+            .drive(articleTableViewCell.descriptionLabel.rx.text)
+            .disposed(by: disposeBag)
         
         return articleTableViewCell
     }

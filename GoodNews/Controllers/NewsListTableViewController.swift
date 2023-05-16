@@ -45,3 +45,22 @@ private extension NewsListTableViewController {
             }).disposed(by: disposeBag)
     }
 }
+
+// MARK: - TableView
+extension NewsListTableViewController {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return articles.count
+    }
+    
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        guard let articleTableViewCell = tableView.dequeueReusableCell(withIdentifier: "ArticleTableViewCell", for: indexPath) as? ArticleTableViewCell else {
+            fatalError("ArticleTableViewCell does not exist")
+        }
+        
+        articleTableViewCell.titleLabel.text = articles[indexPath.row].title
+        articleTableViewCell.descriptionLabel.text = articles[indexPath.row].description
+        
+        return articleTableViewCell
+    }
+}
+
